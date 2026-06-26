@@ -56,6 +56,9 @@ void connectToWiFi() {
 }
 
 void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW); // LOW turns it ON for ESP8266
+
   Serial.begin(115200);
   delay(1000);
   
