@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Walton AC Remote</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #e2e8f0;
+            --remote-bg: #f8fafc;
+            --btn-bg: #f1f5f9;
+            --btn-shadow: -3px -3px 7px #ffffff, 3px 3px 7px #cbd5e1;
+            --btn-shadow-active: inset -3px -3px 7px #ffffff, inset 3px 3px 7px #cbd5e1;
+            --text-dark: #334155;
+            --walton-blue: #0284c7;
+            --power-red: #ef4444;
+            --screen-bg: #e0f2fe;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; user-select: none; }
+        
+        body {
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .remote {
+            background-color: var(--remote-bg);
+            width: 100%;
+            max-width: 340px;
+            border-radius: 40px;
+            padding: 30px 20px;
+            box-shadow: -10px -10px 20px #ffffff, 10px 10px 20px #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* 1. Display Screen */
+        .screen {
+            background-color: var(--screen-bg);
+            height: 120px;
+            border-radius: 12px;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1), inset -2px -2px 5px rgba(255,255,255,0.7);
+            border: 2px solid #cbd5e1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #0f172a;
+            font-size: 28px;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        /* Generic Button Styles */
+        .btn {
+            background-color: var(--btn-bg);
+            border: none;
+            box-shadow: var(--btn-shadow);
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            outline: none;
+        }
+        
+        .btn:active {
+            box-shadow: var(--btn-shadow-active);
+            color: var(--walton-blue);
+        }
+
+        /* 2. Top Button Row */
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        .btn-round {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+
+        .btn-power {
+            color: var(--power-red);
+            font-size: 20px;
+        }
+
+        .btn-pill {
+            height: 40px;
+            padding: 0 20px;
+            border-radius: 20px;
+        }
+
+        /* 3. Main Control Pad */
+        .d-pad-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 10px auto;
+            border-radius: 50%;
+            background-color: var(--remote-bg);
+            box-shadow: var(--btn-shadow);
+            padding: 10px;
+        }
+
+        .d-pad {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .d-btn {
+            position: absolute;
+            background-color: var(--btn-bg);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            color: var(--text-dark);
+            transition: all 0.1s;
+        }
+        
+        .d-btn:active {
+            background-color: #e2e8f0;
+        }
+
+        /* Positioning the directional buttons using clip-path and positioning */
+        .d-top { top: 0; left: 0; right: 0; height: 50%; clip-path: polygon(0 0, 100% 0, 75% 50%, 25% 50%); padding-bottom: 25px;}
+        .d-bottom { bottom: 0; left: 0; right: 0; height: 50%; clip-path: polygon(25% 50%, 75% 50%, 100% 100%, 0 100%); padding-top: 25px;}
+        .d-left { top: 0; bottom: 0; left: 0; width: 50%; clip-path: polygon(0 0, 50% 25%, 50% 75%, 0 100%); padding-right: 25px;}
+        .d-right { top: 0; bottom: 0; right: 0; width: 50%; clip-path: polygon(50% 25%, 100% 0, 100% 100%, 50% 75%); padding-left: 25px;}
+
+        .d-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-size: 13px;
+        }
+
+        /* 4. Bottom Button Grid */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px 15px;
+            padding: 10px;
+            justify-items: center;
+        }
+
+        .btn-small {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            font-size: 10px;
+        }
+
+        .icon {
+            font-size: 20px;
+        }
+
+        /* 5. Branding */
+        .branding {
+            text-align: center;
+            color: var(--walton-blue);
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-top: 10px;
+        }
+
+        /* Interaction feedback overlay */
+        .toast {
+            position: fixed;
+            top: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="toast">Command Sent</div>
+
+    <div class="remote">
+        <!-- 1. Display Screen -->
+        <div class="screen" id="lcd">
+            24°C
+        </div>
+
+        <!-- 2. Top Button Row -->
+        <div class="top-row">
+            <button class="btn btn-round btn-power" onclick="sendIr('PWR')" title="Power">
+                ⏻
+            </button>
+            <button class="btn btn-pill" onclick="sendIr('HEALTH')">
+                HEALTH
+            </button>
+            <button class="btn btn-round" onclick="sendIr('ECO')">
+                ECO
+            </button>
+        </div>
+
+        <!-- 3. Main Control Pad -->
+        <div class="d-pad-container">
+            <div class="d-pad">
+                <div class="d-btn d-top" onclick="adjustTemp(1)">+</div>
+                <div class="d-btn d-bottom" onclick="adjustTemp(-1)">-</div>
+                <div class="d-btn d-left" onclick="sendIr('SWING_H')" title="Horizontal Swing">≡</div>
+                <div class="d-btn d-right" onclick="sendIr('SWING_V')" title="Vertical Swing">|||</div>
+            </div>
+            <button class="btn d-center" onclick="sendIr('MODE')">MODE</button>
+        </div>
+
+        <!-- 4. Bottom Button Grid -->
+        <div class="bottom-grid">
+            <button class="btn btn-small" onclick="sendIr('TURBO')">TURBO</button>
+            <button class="btn btn-small" onclick="sendIr('FAN')">FAN</button>
+            <button class="btn btn-small" onclick="sendIr('SLEEP')">SLEEP</button>
+            
+            <button class="btn btn-small" onclick="sendIr('SETTINGS')">
+                <span class="icon">⚙️</span>
+            </button>
+            <button class="btn btn-small" onclick="sendIr('TIMER')">TIMER</button>
+            <button class="btn btn-small" onclick="sendIr('DISPLAY')">DISPLAY</button>
+        </div>
+
+        <!-- 5. Branding -->
+        <div class="branding">WALTON</div>
+    </div>
+
+    <script>
+        let currentTemp = 24;
+        
+        function updateScreen() {
+            document.getElementById('lcd').innerText = `${currentTemp}°C`;
+        }
+
+        function adjustTemp(change) {
+            currentTemp += change;
+            if (currentTemp > 30) currentTemp = 30;
+            if (currentTemp < 16) currentTemp = 16;
+            updateScreen();
+            
+            // Assuming the ESP handles specific temperatures, 
+            // you might send a command like 'TEMP24'
+            sendIr(`TEMP${currentTemp}`);
+        }
+
+        // We assume this remote corresponds to a specific remote ID in our backend.
+        // For now, let's assume the ID is 'walton_ac' 
+        // (You can create a remote named "Walton AC" in the main app to map to this).
+        async function sendIr(buttonLabel) {
+            showToast(buttonLabel);
+            
+            // Attempt to hit the actual ESP API if it exists
+            try {
+                // To actually use this with the ESP backend, you would first need to 
+                // "Learn" the buttons using the main index.html interface under a remote 
+                // whose ID you know, then use that ID here.
+                
+                // Example call:
+                // await fetch(`/api/send?remote=walton_ac_id&button=${buttonLabel}`);
+            } catch (e) {
+                console.log('API call failed or running offline');
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.opacity = '1';
+            setTimeout(() => t.style.opacity = '0', 1000);
+        }
+    </script>
+</body>
+</html>
