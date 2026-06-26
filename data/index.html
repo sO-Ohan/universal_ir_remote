@@ -268,7 +268,20 @@
             const type = document.getElementById('remote-type').value;
             if (!name) return;
             const id = Date.now().toString();
-            remotes.push({ id, name, type, buttons: [] });
+            
+            let defaultButtons = [];
+            let i = 0;
+            const createBtn = (n) => ({ id: id + '_' + (i++), name: n, learned: false });
+            
+            if (type === 'tv') {
+                defaultButtons = ['PWR', 'VOL+', 'VOL-', 'CH+', 'CH-', 'MUTE', 'SRC', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'OK'].map(createBtn);
+            } else if (type === 'ac') {
+                defaultButtons = ['PWR', 'TEMP+', 'TEMP-', 'FAN', 'MODE', 'SWING'].map(createBtn);
+            } else if (type === 'speaker') {
+                defaultButtons = ['PWR', 'VOL+', 'VOL-', 'MUTE', 'PLAY'].map(createBtn);
+            }
+
+            remotes.push({ id, name, type, buttons: defaultButtons });
             saveData();
             renderRemoteList();
             closeModalForce('add-remote-modal');
