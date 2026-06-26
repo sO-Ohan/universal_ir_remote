@@ -16,6 +16,8 @@
             --walton-blue: #0284c7;
             --power-red: #ef4444;
             --screen-bg: #e0f2fe;
+            --unlearned: #94a3b8;
+            --learning: #f59e0b;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; user-select: none; }
@@ -39,9 +41,9 @@
             display: flex;
             flex-direction: column;
             gap: 25px;
+            position: relative;
         }
 
-        /* 1. Display Screen */
         .screen {
             background-color: var(--screen-bg);
             height: 120px;
@@ -49,15 +51,18 @@
             box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1), inset -2px -2px 5px rgba(255,255,255,0.7);
             border: 2px solid #cbd5e1;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             color: #0f172a;
-            font-size: 28px;
-            font-weight: 700;
             font-family: monospace;
         }
+        
+        .temp-display {
+            font-size: 32px;
+            font-weight: 700;
+        }
 
-        /* Generic Button Styles */
         .btn {
             background-color: var(--btn-bg);
             border: none;
@@ -71,6 +76,7 @@
             justify-content: center;
             align-items: center;
             outline: none;
+            position: relative;
         }
         
         .btn:active {
@@ -78,7 +84,23 @@
             color: var(--walton-blue);
         }
 
-        /* 2. Top Button Row */
+        .btn.unlearned {
+            color: var(--unlearned);
+            border: 1px dashed #cbd5e1;
+            box-shadow: none;
+        }
+        
+        .btn.is-learning {
+            border: 2px solid var(--learning);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+
         .top-row {
             display: flex;
             justify-content: space-between;
@@ -86,24 +108,11 @@
             padding: 0 10px;
         }
 
-        .btn-round {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-        }
+        .btn-round { width: 50px; height: 50px; border-radius: 50%; }
+        .btn-power { color: var(--power-red); font-size: 20px; }
+        .btn-power.unlearned { color: #fca5a5; }
+        .btn-pill { height: 40px; padding: 0 20px; border-radius: 20px; }
 
-        .btn-power {
-            color: var(--power-red);
-            font-size: 20px;
-        }
-
-        .btn-pill {
-            height: 40px;
-            padding: 0 20px;
-            border-radius: 20px;
-        }
-
-        /* 3. Main Control Pad */
         .d-pad-container {
             position: relative;
             width: 180px;
@@ -137,11 +146,10 @@
             transition: all 0.1s;
         }
         
-        .d-btn:active {
-            background-color: #e2e8f0;
-        }
+        .d-btn:active { background-color: #e2e8f0; }
+        .d-btn.unlearned { color: var(--unlearned); background-color: #f8fafc; }
+        .d-btn.is-learning { background-color: #fef3c7; }
 
-        /* Positioning the directional buttons using clip-path and positioning */
         .d-top { top: 0; left: 0; right: 0; height: 50%; clip-path: polygon(0 0, 100% 0, 75% 50%, 25% 50%); padding-bottom: 25px;}
         .d-bottom { bottom: 0; left: 0; right: 0; height: 50%; clip-path: polygon(25% 50%, 75% 50%, 100% 100%, 0 100%); padding-top: 25px;}
         .d-left { top: 0; bottom: 0; left: 0; width: 50%; clip-path: polygon(0 0, 50% 25%, 50% 75%, 0 100%); padding-right: 25px;}
@@ -160,7 +168,6 @@
             font-size: 13px;
         }
 
-        /* 4. Bottom Button Grid */
         .bottom-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -169,28 +176,37 @@
             justify-items: center;
         }
 
-        .btn-small {
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            font-size: 10px;
+        .btn-small { width: 55px; height: 55px; border-radius: 50%; font-size: 10px; }
+        .icon { font-size: 20px; }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
         }
 
-        .icon {
-            font-size: 20px;
-        }
-
-        /* 5. Branding */
         .branding {
-            text-align: center;
             color: var(--walton-blue);
             font-size: 20px;
             font-weight: 700;
             letter-spacing: 2px;
-            margin-top: 10px;
         }
 
-        /* Interaction feedback overlay */
+        .learn-toggle {
+            font-size: 12px;
+            background: #e2e8f0;
+            padding: 5px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #64748b;
+        }
+        .learn-toggle.active {
+            background: var(--learning);
+            color: white;
+        }
+
         .toast {
             position: fixed;
             top: 20px;
@@ -202,6 +218,16 @@
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
+            z-index: 100;
+        }
+        
+        .nav-back {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            color: var(--walton-blue);
+            text-decoration: none;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -210,86 +236,172 @@
     <div id="toast" class="toast">Command Sent</div>
 
     <div class="remote">
-        <!-- 1. Display Screen -->
+        <a href="/" class="nav-back">← Back to Remotes</a>
+        
         <div class="screen" id="lcd">
-            24°C
+            <div class="temp-display" id="temp-val">AC Ready</div>
+            <div style="font-size: 12px; color: #64748b; margin-top: 5px;" id="mode-val">Standard Mode</div>
         </div>
 
-        <!-- 2. Top Button Row -->
         <div class="top-row">
-            <button class="btn btn-round btn-power" onclick="sendIr('PWR')" title="Power">
-                ⏻
-            </button>
-            <button class="btn btn-pill" onclick="sendIr('HEALTH')">
-                HEALTH
-            </button>
-            <button class="btn btn-round" onclick="sendIr('ECO')">
-                ECO
-            </button>
+            <button class="btn btn-round btn-power" id="btn-PWR" onclick="handlePress('PWR')" title="Power">⏻</button>
+            <button class="btn btn-pill" id="btn-HEALTH" onclick="handlePress('HEALTH')">HEALTH</button>
+            <button class="btn btn-round" id="btn-ECO" onclick="handlePress('ECO')">ECO</button>
         </div>
 
-        <!-- 3. Main Control Pad -->
         <div class="d-pad-container">
             <div class="d-pad">
-                <div class="d-btn d-top" onclick="adjustTemp(1)">+</div>
-                <div class="d-btn d-bottom" onclick="adjustTemp(-1)">-</div>
-                <div class="d-btn d-left" onclick="sendIr('SWING_H')" title="Horizontal Swing">≡</div>
-                <div class="d-btn d-right" onclick="sendIr('SWING_V')" title="Vertical Swing">|||</div>
+                <div class="d-btn d-top" id="btn-TEMP_UP" onclick="handlePress('TEMP_UP')">+</div>
+                <div class="d-btn d-bottom" id="btn-TEMP_DOWN" onclick="handlePress('TEMP_DOWN')">-</div>
+                <div class="d-btn d-left" id="btn-SWING_H" onclick="handlePress('SWING_H')" title="Horizontal Swing">≡</div>
+                <div class="d-btn d-right" id="btn-SWING_V" onclick="handlePress('SWING_V')" title="Vertical Swing">|||</div>
             </div>
-            <button class="btn d-center" onclick="sendIr('MODE')">MODE</button>
+            <button class="btn d-center" id="btn-MODE" onclick="handlePress('MODE')">MODE</button>
         </div>
 
-        <!-- 4. Bottom Button Grid -->
         <div class="bottom-grid">
-            <button class="btn btn-small" onclick="sendIr('TURBO')">TURBO</button>
-            <button class="btn btn-small" onclick="sendIr('FAN')">FAN</button>
-            <button class="btn btn-small" onclick="sendIr('SLEEP')">SLEEP</button>
+            <button class="btn btn-small" id="btn-TURBO" onclick="handlePress('TURBO')">TURBO</button>
+            <button class="btn btn-small" id="btn-FAN" onclick="handlePress('FAN')">FAN</button>
+            <button class="btn btn-small" id="btn-SLEEP" onclick="handlePress('SLEEP')">SLEEP</button>
             
-            <button class="btn btn-small" onclick="sendIr('SETTINGS')">
-                <span class="icon">⚙️</span>
-            </button>
-            <button class="btn btn-small" onclick="sendIr('TIMER')">TIMER</button>
-            <button class="btn btn-small" onclick="sendIr('DISPLAY')">DISPLAY</button>
+            <button class="btn btn-small" id="btn-SETTINGS" onclick="handlePress('SETTINGS')"><span class="icon">⚙️</span></button>
+            <button class="btn btn-small" id="btn-TIMER" onclick="handlePress('TIMER')">TIMER</button>
+            <button class="btn btn-small" id="btn-DISPLAY" onclick="handlePress('DISPLAY')">DISPLAY</button>
         </div>
 
-        <!-- 5. Branding -->
-        <div class="branding">WALTON</div>
+        <div class="footer">
+            <div class="branding">WALTON</div>
+            <div class="learn-toggle" id="learn-toggle" onclick="toggleLearnMode()">Learn Mode: OFF</div>
+        </div>
     </div>
 
     <script>
-        let currentTemp = 24;
-        
-        function updateScreen() {
-            document.getElementById('lcd').innerText = `${currentTemp}°C`;
-        }
+        const REMOTE_ID = "walton_ac_custom";
+        const REMOTE_NAME = "Walton AC";
+        let allRemotes = [];
+        let remoteData = null;
+        let isLearningMode = false;
+        let isWaitingForIR = false;
 
-        function adjustTemp(change) {
-            currentTemp += change;
-            if (currentTemp > 30) currentTemp = 30;
-            if (currentTemp < 16) currentTemp = 16;
-            updateScreen();
-            
-            // Assuming the ESP handles specific temperatures, 
-            // you might send a command like 'TEMP24'
-            sendIr(`TEMP${currentTemp}`);
-        }
-
-        // We assume this remote corresponds to a specific remote ID in our backend.
-        // For now, let's assume the ID is 'walton_ac' 
-        // (You can create a remote named "Walton AC" in the main app to map to this).
-        async function sendIr(buttonLabel) {
-            showToast(buttonLabel);
-            
-            // Attempt to hit the actual ESP API if it exists
+        async function init() {
             try {
-                // To actually use this with the ESP backend, you would first need to 
-                // "Learn" the buttons using the main index.html interface under a remote 
-                // whose ID you know, then use that ID here.
-                
-                // Example call:
-                // await fetch(`/api/send?remote=walton_ac_id&button=${buttonLabel}`);
+                const res = await fetch('/api/remotes');
+                if (res.ok) {
+                    allRemotes = await res.json();
+                    remoteData = allRemotes.find(r => r.id === REMOTE_ID);
+                    
+                    // Create if it doesn't exist
+                    if (!remoteData) {
+                        remoteData = { id: REMOTE_ID, name: REMOTE_NAME, type: 'ac', buttons: [] };
+                        allRemotes.push(remoteData);
+                        await saveToServer();
+                    }
+                    updateButtonUI();
+                }
             } catch (e) {
-                console.log('API call failed or running offline');
+                console.error("Failed to fetch remotes", e);
+                showToast("Offline Mode (No ESP Connection)");
+            }
+        }
+
+        async function saveToServer() {
+            try {
+                await fetch('/api/remotes', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(allRemotes)
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        function updateButtonUI() {
+            if (!remoteData) return;
+            const buttons = ['PWR', 'HEALTH', 'ECO', 'TEMP_UP', 'TEMP_DOWN', 'SWING_H', 'SWING_V', 'MODE', 'TURBO', 'FAN', 'SLEEP', 'SETTINGS', 'TIMER', 'DISPLAY'];
+            
+            buttons.forEach(btnId => {
+                const el = document.getElementById(`btn-${btnId}`);
+                if (!el) return;
+                
+                const btnData = remoteData.buttons.find(b => b.id === btnId);
+                el.classList.remove('unlearned', 'is-learning');
+                
+                if (!btnData || !btnData.learned) {
+                    el.classList.add('unlearned');
+                }
+            });
+        }
+
+        function toggleLearnMode() {
+            if (isWaitingForIR) return; // Don't allow toggle while waiting
+            isLearningMode = !isLearningMode;
+            const toggle = document.getElementById('learn-toggle');
+            toggle.innerText = `Learn Mode: ${isLearningMode ? 'ON' : 'OFF'}`;
+            toggle.classList.toggle('active', isLearningMode);
+            
+            if (isLearningMode) {
+                showToast("Tap any dashed button to learn it");
+            }
+        }
+
+        async function handlePress(btnId) {
+            if (!remoteData || isWaitingForIR) return;
+            
+            // Ensure button exists in our JSON
+            let btnData = remoteData.buttons.find(b => b.id === btnId);
+            if (!btnData) {
+                btnData = { id: btnId, name: btnId, learned: false };
+                remoteData.buttons.push(btnData);
+                await saveToServer();
+            }
+
+            const el = document.getElementById(`btn-${btnId}`);
+
+            if (isLearningMode) {
+                // Enter learning state
+                isWaitingForIR = true;
+                el.classList.add('is-learning');
+                document.getElementById('temp-val').innerText = "WAIT";
+                document.getElementById('mode-val').innerText = "Point remote & press...";
+                
+                try {
+                    const res = await fetch(`/api/learn?remote=${REMOTE_ID}&button=${btnId}`);
+                    if (res.ok) {
+                        showToast(`Learned successfully!`);
+                        await init(); // Reload data to get IR codes
+                    } else {
+                        showToast(`Timeout or failed.`);
+                    }
+                } catch(e) { 
+                    showToast("ESP Connection Error"); 
+                }
+                
+                isWaitingForIR = false;
+                el.classList.remove('is-learning');
+                document.getElementById('temp-val').innerText = "AC Ready";
+                document.getElementById('mode-val').innerText = "Standard Mode";
+                updateButtonUI();
+
+            } else {
+                // Sending state
+                if (!btnData.learned) {
+                    showToast("Button not learned yet!");
+                    return;
+                }
+                
+                document.getElementById('temp-val').innerText = btnId;
+                document.getElementById('mode-val').innerText = "Sending...";
+                
+                try {
+                    await fetch(`/api/send?remote=${REMOTE_ID}&button=${btnId}`);
+                    showToast("Sent!");
+                } catch(e) { 
+                    showToast("Failed to send"); 
+                }
+                
+                setTimeout(() => {
+                    document.getElementById('temp-val').innerText = "AC Ready";
+                    document.getElementById('mode-val').innerText = "Standard Mode";
+                }, 1000);
             }
         }
 
@@ -297,8 +409,11 @@
             const t = document.getElementById('toast');
             t.innerText = msg;
             t.style.opacity = '1';
-            setTimeout(() => t.style.opacity = '0', 1000);
+            setTimeout(() => t.style.opacity = '0', 2000);
         }
+
+        // Initialize on load
+        window.onload = init;
     </script>
 </body>
 </html>
