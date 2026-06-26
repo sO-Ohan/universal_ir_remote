@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Universal IR Remote</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface: #1e293b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #10b981;
+            --border: #334155;
+            --radius: 12px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.5; padding: 16px; }
+        header { text-align: center; margin-bottom: 24px; }
+        h1 { font-size: 24px; font-weight: 700; background: linear-gradient(to right, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .card { background: var(--surface); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .btn { background: var(--surface); color: var(--text-main); border: 1px solid var(--border); padding: 12px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; width: 100%; text-align: center; }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--primary); border-color: var(--primary); }
+        .btn-primary:active { background: var(--primary-hover); }
+        .btn-danger { background: var(--danger); border-color: var(--danger); }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        
+        .remote-list-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; cursor: pointer; transition: background 0.2s; }
+        .remote-list-item:active { background: #334155; }
+        
+        .remote-icon { font-size: 24px; margin-right: 12px; }
+        .remote-info { flex: 1; }
+        .remote-name { font-size: 18px; font-weight: 600; }
+        .remote-type { font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: flex-end; z-index: 50; backdrop-filter: blur(4px); }
+        .modal { background: var(--bg-color); width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; padding: 24px; border-top: 1px solid var(--border); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .modal.open { transform: translateY(0); }
+        .modal-title { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; font-size: 14px; color: var(--text-muted); margin-bottom: 6px; }
+        input, select { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text-main); padding: 12px; border-radius: 8px; outline: none; }
+        input:focus, select:focus { border-color: var(--primary); }
+        
+        #view-remote { display: none; }
+        
+        .button-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; }
+        .remote-btn { aspect-ratio: 1; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--surface); border: 2px solid var(--border); color: var(--text-main); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .remote-btn:active { transform: scale(0.92); background: #334155; }
+        .remote-btn.unlearned { border-style: dashed; color: var(--text-muted); }
+        .remote-btn.learning { border-color: var(--primary); animation: pulse 1.5s infinite; color: var(--primary); }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        
+        .toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: var(--success); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        
+        .back-btn { background: transparent; border: none; color: var(--primary); font-size: 16px; font-weight: 600; padding: 8px 0; margin-bottom: 12px; cursor: pointer; display: flex; align-items: center; }
+        .back-btn::before { content: "←"; margin-right: 6px; }
+        
+        .icon-ac::before { content: "❄️"; }
+        .icon-tv::before { content: "📺"; }
+        .icon-speaker::before { content: "🔊"; }
+        .icon-other::before { content: "🎮"; }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="toast">Action successful</div>
+
+    <!-- Main View: List of Remotes -->
+    <div id="view-list">
+        <header>
+            <h1>My Remotes</h1>
+        </header>
+        
+        <div id="remote-list">
+            <!-- Remotes populated by JS -->
+        </div>
+        
+        <button class="btn btn-primary" onclick="openModal('add-remote-modal')">+ Add New Remote</button>
+    </div>
+
+    <!-- Detail View: Single Remote -->
+    <div id="view-remote">
+        <button class="back-btn" onclick="showView('view-list')">Back to Remotes</button>
+        <header>
+            <h1 id="current-remote-name">Remote Name</h1>
+        </header>
+        
+        <div class="card">
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px;">
+                Tap an outlined button to record its IR signal. Point your real remote at the ESP8266 and press the button.
+            </p>
+            <div id="button-grid" class="button-grid">
+                <!-- Buttons populated by JS -->
+            </div>
+            <div style="margin-top: 24px;">
+                <button class="btn" onclick="openModal('add-button-modal')" style="margin-bottom: 12px;">+ Add Button</button>
+                <button class="btn btn-danger" onclick="deleteCurrentRemote()">Delete Remote</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="add-remote-modal" class="modal-overlay" onclick="closeModal(event, 'add-remote-modal')">
+        <div class="modal">
+            <div class="modal-title">New Remote</div>
+            <div class="input-group">
+                <label>Name (e.g., Living Room TV)</label>
+                <input type="text" id="remote-name" placeholder="Name">
+            </div>
+            <div class="input-group">
+                <label>Type</label>
+                <select id="remote-type">
+                    <option value="tv">TV</option>
+                    <option value="ac">Air Conditioner</option>
+                    <option value="speaker">Speaker</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="grid-2">
+                <button class="btn" onclick="closeModalForce('add-remote-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="addRemote()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-button-modal" class="modal-overlay" onclick="closeModal(event, 'add-button-modal')">
+        <div class="modal">
+            <div class="modal-title">New Button</div>
+            <div class="input-group">
+                <label>Button Label (e.g., Power, Vol+)</label>
+                <input type="text" id="button-name" placeholder="Short Label (max 6 chars)" maxlength="6">
+            </div>
+            <div class="grid-2">
+                <button class="btn" onclick="closeModalForce('add-button-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="addButton()">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let remotes = [];
+        let currentRemoteId = null;
+        let learningMode = false;
+
+        // Fetch data on load
+        async function loadData() {
+            try {
+                const res = await fetch('/api/remotes');
+                if (res.ok) {
+                    remotes = await res.json();
+                    renderRemoteList();
+                }
+            } catch (e) {
+                console.error("Failed to load remotes", e);
+                // Fallback demo data for UI testing if not on ESP
+                if(location.hostname === 'localhost' || location.hostname === '') {
+                    remotes = [
+                        { id: '1', name: 'Samsung TV', type: 'tv', buttons: [{id: 'b1', name: 'PWR', learned: true}, {id: 'b2', name: 'VOL+', learned: false}] }
+                    ];
+                    renderRemoteList();
+                }
+            }
+        }
+
+        async function saveData() {
+            try {
+                await fetch('/api/remotes', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(remotes)
+                });
+            } catch (e) { console.error("Failed to save", e); }
+        }
+
+        function renderRemoteList() {
+            const list = document.getElementById('remote-list');
+            list.innerHTML = '';
+            remotes.forEach(r => {
+                const div = document.createElement('div');
+                div.className = 'remote-list-item';
+                div.onclick = () => openRemote(r.id);
+                div.innerHTML = `
+                    <div class="remote-icon icon-${r.type}"></div>
+                    <div class="remote-info">
+                        <div class="remote-name">${r.name}</div>
+                        <div class="remote-type">${r.type}</div>
+                    </div>
+                    <div style="color: var(--text-muted)">→</div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function showView(viewId) {
+            document.getElementById('view-list').style.display = viewId === 'view-list' ? 'block' : 'none';
+            document.getElementById('view-remote').style.display = viewId === 'view-remote' ? 'block' : 'none';
+        }
+
+        function openRemote(id) {
+            currentRemoteId = id;
+            const r = remotes.find(x => x.id === id);
+            document.getElementById('current-remote-name').innerText = r.name;
+            renderButtons();
+            showView('view-remote');
+        }
+
+        function renderButtons() {
+            const r = remotes.find(x => x.id === currentRemoteId);
+            const grid = document.getElementById('button-grid');
+            grid.innerHTML = '';
+            r.buttons.forEach(b => {
+                const btn = document.createElement('div');
+                btn.className = `remote-btn ${b.learned ? '' : 'unlearned'}`;
+                btn.id = `btn-${b.id}`;
+                btn.innerText = b.name;
+                btn.onclick = () => handleButtonPress(b.id, btn);
+                grid.appendChild(btn);
+            });
+        }
+
+        async function handleButtonPress(btnId, el) {
+            if (learningMode) return;
+            const r = remotes.find(x => x.id === currentRemoteId);
+            const b = r.buttons.find(x => x.id === btnId);
+            
+            if (b.learned) {
+                // Send IR
+                el.style.transform = 'scale(0.92)';
+                setTimeout(() => el.style.transform = 'none', 150);
+                try {
+                    await fetch(`/api/send?remote=${r.id}&button=${b.id}`);
+                    showToast("Signal sent");
+                } catch(e) {}
+            } else {
+                // Enter learning mode
+                learningMode = true;
+                el.className = 'remote-btn learning';
+                el.innerText = 'WAIT';
+                try {
+                    const res = await fetch(`/api/learn?remote=${r.id}&button=${b.id}`);
+                    if (res.ok) {
+                        await loadData();
+                        showToast("Learned successfully!");
+                    } else {
+                        showToast("Learning failed or timeout");
+                    }
+                } catch(e) {
+                    showToast("Error connecting to device");
+                }
+                learningMode = false;
+                renderButtons();
+            }
+        }
+
+        function addRemote() {
+            const name = document.getElementById('remote-name').value;
+            const type = document.getElementById('remote-type').value;
+            if (!name) return;
+            const id = Date.now().toString();
+            remotes.push({ id, name, type, buttons: [] });
+            saveData();
+            renderRemoteList();
+            closeModalForce('add-remote-modal');
+            document.getElementById('remote-name').value = '';
+        }
+
+        function addButton() {
+            const name = document.getElementById('button-name').value.toUpperCase();
+            if (!name) return;
+            const r = remotes.find(x => x.id === currentRemoteId);
+            const id = Date.now().toString();
+            r.buttons.push({ id, name, learned: false });
+            saveData();
+            renderButtons();
+            closeModalForce('add-button-modal');
+            document.getElementById('button-name').value = '';
+        }
+
+        function deleteCurrentRemote() {
+            if(confirm("Delete this remote?")) {
+                remotes = remotes.filter(x => x.id !== currentRemoteId);
+                saveData();
+                showView('view-list');
+                renderRemoteList();
+            }
+        }
+
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            modal.style.display = 'flex';
+            // slight delay to allow display block to apply before transform
+            setTimeout(() => modal.querySelector('.modal').classList.add('open'), 10);
+        }
+
+        function closeModal(e, id) {
+            if (e.target.id === id) closeModalForce(id);
+        }
+
+        function closeModalForce(id) {
+            const modal = document.getElementById(id);
+            modal.querySelector('.modal').classList.remove('open');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.opacity = '1';
+            setTimeout(() => t.style.opacity = '0', 2500);
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>
